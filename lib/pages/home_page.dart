@@ -1,18 +1,24 @@
-import 'dart:io';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firestore_example/model/model_todo.dart';
-import 'package:firestore_example/pages/add_todo.dart';
 import 'package:firestore_example/service/firebase_todo_service.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          addTodo().whenComplete(() {
+            setState(() {});
+          });
           //Navigator.of(context).push(
           //  // With MaterialPageRoute, you can pass data between pages,
           //  // but if you have a more complex app, you will quickly get lost.
@@ -34,13 +40,12 @@ class HomePage extends StatelessWidget {
               if (snapshot.hasData) {
                 var todos = snapshot.data;
                 return ListView.builder(
+                    padding: EdgeInsets.all(8),
+                    shrinkWrap: true,
                     itemCount: todos!.length,
                     itemBuilder: (context, index) {
-                      var todo = todos[index];
-                      return ListTile(
-                        title: Text(todo.taskTitle),
-                        subtitle: Text(todo.isDone.toString()),
-                      );
+                      Todo todo = todos[index];
+                      return buildTodoWidget(todo);
                     });
               } else if (snapshot.hasError) {
                 print("HATA: ${snapshot.error}");
@@ -53,12 +58,45 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
+
+  Widget buildTodoWidget(Todo item) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text("${item.taskTitle}"),
+          InkWell(
+            onDoubleTap: () {
+              FirebaseTodoService()
+                  .updateTodo(Todo(
+                      todoId: item.todoId,
+                      isDone: !item.isDone,
+                      taskTitle: item.taskTitle))
+                  .whenComplete(() {
+                setState(() {});
+              });
+            },
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: item.isDone ? Colors.greenAccent : Colors.redAccent,
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
 }
 
-void addTodo() {
+Future<void> addTodo() async {
   Todo expTodo = Todo(
     isDone: true,
-    taskTitle: "Write code",
+    taskTitle: "deneme",
+    todoId: "",
   );
-  FirebaseTodoService().addTodo(expTodo);
+  return FirebaseTodoService().addTodo(expTodo);
 }
