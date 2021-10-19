@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firestore_example/model/model_todo.dart';
 import 'package:firestore_example/pages/add_todo.dart';
 import 'package:firestore_example/service/firebase_todo_service.dart';
@@ -11,13 +13,13 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).push(
-            // With MaterialPageRoute, you can pass data between pages,
-            // but if you have a more complex app, you will quickly get lost.
-            MaterialPageRoute(
-              builder: (context) => SecondPage(),
-            ),
-          );
+          //Navigator.of(context).push(
+          //  // With MaterialPageRoute, you can pass data between pages,
+          //  // but if you have a more complex app, you will quickly get lost.
+          //  MaterialPageRoute(
+          //    builder: (context) => SecondPage(),
+          //  ),
+          //);
         },
         child: Icon(Icons.add),
       ),
@@ -41,8 +43,9 @@ class HomePage extends StatelessWidget {
                       );
                     });
               } else if (snapshot.hasError) {
+                print("HATA: ${snapshot.error}");
                 return Center(
-                  child: Text("Hata Var!!"),
+                  child: Text("Hata Var!! \n"),
                 );
               }
               return Center(child: CircularProgressIndicator());
@@ -50,4 +53,12 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
+}
+
+void addTodo() {
+  Todo expTodo = Todo(
+    isDone: true,
+    taskTitle: "Write code",
+  );
+  FirebaseTodoService().addTodo(expTodo);
 }
