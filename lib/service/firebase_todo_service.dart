@@ -1,7 +1,6 @@
 import 'package:firestore_example/constants/firebase_constants.dart';
 import 'package:firestore_example/model/model_todo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 
 class FirebaseTodoService {
   Future<List<Todo>> getTodo() async {
@@ -27,6 +26,13 @@ class FirebaseTodoService {
   }
 
   Future<void> updateTodo(Todo todo) async {
-    await todosRef.doc(todo.todoId).update(todo.toJson()).then((value) async {});
+    await todosRef
+        .doc(todo.todoId)
+        .update(todo.toJson())
+        .then((value) async {});
+  }
+
+  Future<void> deleteTask(Todo todo) async {
+    await todosRef.doc(todo.todoId).delete();
   }
 }

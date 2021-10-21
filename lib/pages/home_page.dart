@@ -1,7 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firestore_example/model/model_todo.dart';
 import 'package:firestore_example/service/firebase_todo_service.dart';
+import 'package:firestore_example/service/firestore_service.dart';
 import 'package:flutter/material.dart';
+
+import 'add_todo.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -16,22 +19,26 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          addTodo().whenComplete(() {
-            setState(() {});
-          });
-          //Navigator.of(context).push(
-          //  // With MaterialPageRoute, you can pass data between pages,
-          //  // but if you have a more complex app, you will quickly get lost.
-          //  MaterialPageRoute(
-          //    builder: (context) => SecondPage(),
-          //  ),
-          //);
+          Navigator.of(context).push(
+            // With MaterialPageRoute, you can pass data between pages,
+            // but if you have a more complex app, you will quickly get lost.
+            MaterialPageRoute(
+              builder: (context) => AddTodo(),
+            ),
+          );
         },
         child: Icon(Icons.add),
       ),
       appBar: AppBar(
         title: Text("TODO"),
         centerTitle: true,
+        actions: [
+          IconButton(
+              onPressed: () {
+                setState(() {});
+              },
+              icon: Icon(Icons.restart_alt))
+        ],
       ),
       body: Container(
         child: FutureBuilder(
@@ -45,7 +52,19 @@ class _HomePageState extends State<HomePage> {
                     itemCount: todos!.length,
                     itemBuilder: (context, index) {
                       Todo todo = todos[index];
-                      return buildTodoWidget(todo);
+                      return Dismissible(
+                        direction: DismissDirection.endToStart,
+                        key: ValueKey(todos[index]),
+                        child: buildTodoWidget(todo),
+                        onDismissed: (direction) {
+                          FirebaseTodoService().deleteTask(todo);
+                          setState(() {});
+                        },
+                        background: Container(
+                          child: Icon(Icons.delete),
+                          color: Colors.red,
+                        ),
+                      );
                     });
               } else if (snapshot.hasError) {
                 print("HATA: ${snapshot.error}");
@@ -90,13 +109,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-}
-
-Future<void> addTodo() async {
-  Todo expTodo = Todo(
-    isDone: true,
-    taskTitle: "deneme",
-    todoId: "",
-  );
-  return FirebaseTodoService().addTodo(expTodo);
 }
