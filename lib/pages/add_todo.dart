@@ -3,9 +3,6 @@ import 'package:firestore_example/service/firebase_todo_service.dart';
 import 'package:flutter/material.dart';
 
 class AddTodo extends StatelessWidget {
-  // This is a String for the sake of an example.
-  // You can use any type you want.
-
   @override
   Widget build(BuildContext context) {
     final myController = TextEditingController();
@@ -35,7 +32,17 @@ class AddTodo extends StatelessWidget {
                 child: RaisedButton(
                   color: Colors.lightBlue,
                   onPressed: () {
-                    addTodo(myController.text);
+                    getFirebaseService
+                        .addTodo(Todo(
+                      isDone: false,
+                      taskTitle: myController.text,
+                      todoId: "",
+                    ))
+                        .then((value) {
+                      if (value) {
+                        Navigator.pop(context);
+                      }
+                    });
                     myController.clear();
                   },
                   child: Text(
@@ -49,14 +56,5 @@ class AddTodo extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> addTodo(String todoName) async {
-    Todo expTodo = Todo(
-      isDone: false,
-      taskTitle: todoName,
-      todoId: "",
-    );
-    return FirebaseTodoService().addTodo(expTodo);
   }
 }

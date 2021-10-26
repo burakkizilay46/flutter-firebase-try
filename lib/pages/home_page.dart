@@ -1,5 +1,6 @@
 import 'package:firestore_example/model/model_todo.dart';
 import 'package:firestore_example/service/firebase_todo_service.dart';
+import 'package:firestore_example/service/firestore_service.dart';
 import 'package:flutter/material.dart';
 
 import 'add_todo.dart';
@@ -30,13 +31,6 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text("TODO"),
         centerTitle: true,
-        actions: [
-          IconButton(
-              onPressed: () {
-                setState(() {});
-              },
-              icon: Icon(Icons.restart_alt))
-        ],
       ),
       body: Container(
         child: FutureBuilder(
@@ -44,26 +38,30 @@ class _HomePageState extends State<HomePage> {
             builder: (context, AsyncSnapshot<List<Todo>> snapshot) {
               if (snapshot.hasData) {
                 var todos = snapshot.data;
-                return ListView.builder(
-                    padding: EdgeInsets.all(8),
-                    shrinkWrap: true,
-                    itemCount: todos!.length,
-                    itemBuilder: (context, index) {
-                      Todo todo = todos[index];
-                      return Dismissible(
-                        direction: DismissDirection.endToStart,
-                        key: ValueKey(todos[index]),
-                        child: buildTodoWidget(todo),
-                        onDismissed: (direction) {
-                          FirebaseTodoService().deleteTask(todo);
-                          setState(() {});
-                        },
-                        background: Container(
-                          child: Icon(Icons.delete),
-                          color: Colors.red,
-                        ),
-                      );
-                    });
+                return RefreshIndicator(
+                  displacement: 50,
+                  onRefresh: _refresh,
+                  child: ListView.builder(
+                      padding: EdgeInsets.all(8),
+                      shrinkWrap: true,
+                      itemCount: todos!.length,
+                      itemBuilder: (context, index) {
+                        Todo todo = todos[index];
+                        return Dismissible(
+                          direction: DismissDirection.endToStart,
+                          key: ValueKey(todos[index]),
+                          child: buildTodoWidget(todo),
+                          onDismissed: (direction) {
+                            FirebaseTodoService().deleteTask(todo);
+                            setState(() {});
+                          },
+                          background: Container(
+                            child: Icon(Icons.delete),
+                            color: Colors.red,
+                          ),
+                        );
+                      }),
+                );
               } else if (snapshot.hasError) {
                 print("HATA: ${snapshot.error}");
                 return Center(
@@ -74,6 +72,10 @@ class _HomePageState extends State<HomePage> {
             }),
       ),
     );
+  }
+
+  Future<void> _refresh() async {
+    setState(() {});
   }
 
   Widget buildTodoWidget(Todo item) {
